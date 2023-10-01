@@ -173,7 +173,7 @@ export class WebAppComponent implements OnInit {
   }
 
   help() {
-    window.open('https://www.Soptle.com', '_blank');
+    window.open('https://www.soptle.com', '_blank');
   }
 
   // Monitor all keyboard events and excute keyboard shortcuts
