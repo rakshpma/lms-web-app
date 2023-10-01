@@ -35,10 +35,10 @@
         {{ 'labels.menus.Self Service' | translate }}
       </a>
 
-      <a #configWizard mat-tab-link class="tab-link" (click)="openDialog()">
+      <!-- <a #configWizard mat-tab-link class="tab-link" (click)="openDialog()">
         <fa-icon class="mr-05" icon="info" size="lg"></fa-icon>
         {{ 'labels.menus.Configuration Wizard' | translate }}
-      </a>
+      </a> -->
 
     </span>
 
@@ -50,9 +50,9 @@
     <mifosx-search-tool></mifosx-search-tool>
   </div>
 
-  <div #languageSelector>
+  <!-- <div #languageSelector>
     <mifosx-language-selector class="ml-1 language" fxHide.lt-md></mifosx-language-selector>
-  </div>
+  </div> -->
 
   <div #notifications>
     <mifosx-notifications-tray fxHide.lt-md></mifosx-notifications-tray>
@@ -98,30 +98,30 @@
 
 <mat-menu #selfServiceMenu="matMenu" [overlapTrigger]="false">
   <button mat-menu-item [routerLink]="['/self-service/users']">{{ 'labels.menus.User Management' | translate }}</button>
-  <button mat-menu-item [routerLink]="['/self-service/app-configuration']">{{ 'labels.menus.App Configuration' | translate }}</button>
-  <button mat-menu-item [routerLink]="['/self-service/task-management']">{{ 'labels.menus.Task Management' | translate }}</button>
+  <!-- <button mat-menu-item [routerLink]="['/self-service/app-configuration']">{{ 'labels.menus.App Configuration' | translate }}</button>
+  <button mat-menu-item [routerLink]="['/self-service/task-management']">{{ 'labels.menus.Task Management' | translate }}</button> -->
 </mat-menu>
 
 <!-- Application User Help Menu -->
 <mat-menu #applicationMenu="matMenu" [overlapTrigger]="false">
-  <button mat-menu-item (click)="help()">
+  <!-- <button mat-menu-item (click)="help()">
     <mat-icon matListIcon>
       <fa-icon icon="question-circle" size="sm"></fa-icon>
     </mat-icon>
     <span>{{ 'labels.menus.Help' | translate }}</span>
-  </button>
+  </button> -->
   <button mat-menu-item [routerLink]="['/profile']">
     <mat-icon>
       <fa-icon icon="user" size="sm"></fa-icon>
     </mat-icon>
     <span>{{ 'labels.menus.Profile' | translate }}</span>
   </button>
-  <button mat-menu-item [routerLink]="['/settings']">
+  <!-- <button mat-menu-item [routerLink]="['/settings']">
     <mat-icon>
       <fa-icon icon="cog" size="sm"></fa-icon>
     </mat-icon>
     <span>{{ 'labels.menus.Settings' | translate }}</span>
-  </button>
+  </button> -->
   <button mat-menu-item (click)="logout()" id="logout">
     <mat-icon>
       <fa-icon icon="sign-out-alt" size="sm"></fa-icon>

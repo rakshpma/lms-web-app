@@ -118,7 +118,7 @@ export class WebAppComponent implements OnInit {
       .subscribe(event => {
         const title = event['title'];
         if (title) {
-          this.titleService.setTitle(`${this.translateService.instant(title)} | Mifos X`);
+          this.titleService.setTitle(`${this.translateService.instant(title)} |  Loan Management System`);
         }
       });
 
@@ -173,7 +173,7 @@ export class WebAppComponent implements OnInit {
   }
 
   help() {
-    window.open('https://mifosforge.jira.com/wiki/spaces/docs/pages/52035622/User+Manual', '_blank');
+    window.open('https://www.Soptle.com', '_blank');
   }
 
   // Monitor all keyboard events and excute keyboard shortcuts
