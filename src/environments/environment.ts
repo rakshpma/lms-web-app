@@ -27,7 +27,7 @@ export const environment = {
     serverUrl: ''
   },
   defaultLanguage: window['env']['defaultLanguage'] || 'en-US',
-  supportedLanguages: window['env']['supportedLanguages'] || 'en-US,es-MX,fr-FR',
+  supportedLanguages: window['env']['supportedLanguages'] || 'en-US',
   preloadClients: window['env']['preloadClients'] || true,
 
   defaultCharDelimiter: window['env']['defaultCharDelimiter'] || ',',
