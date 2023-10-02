@@ -40,7 +40,9 @@
       "Run Periodic Accruals":"Run Periodic Accruals",
       "Create Closure":"Create Closure",
       "Add Rule":"Add Rule",
-      "Define New Mapping": "Define New Mapping"
+      "Define New Mapping": "Define New Mapping",
+      "Delete":"Delete",
+      "Close Config. Wizard":"Close Config. Wizard"
     },
     "commons": {
       "is":"is",
@@ -65,9 +67,20 @@
       "Accruals":"Accruals",
       "Accounting Rules": "Accounting Rules",
       "Closing Entries":  "Closing Entries",
-      "Chart of Accounts":"Chart of Accounts"
+      "Chart of Accounts":"Chart of Accounts",
+      "Progress Bar":"Progress Bar",
+      "Configuration Wizard Setup":"Configuration Wizard Setup",
+      "Successfully completed":"Successfully completed"
+
     },
     "inputs": {
+      "Opened On":"Opened On",
+      "Parent officeData":"Parent officeData",
+      "Number of Staff":"Number of Staff",
+      "Number of Centers":"Number of Centers",
+      "Loan Officer":"Loan Officer",
+      "Joined On":"Joined On",
+      "Associated Office":"Associated Office",      
       "Affected GL Entry (Credit) Rule Type":"Affected GL Entry (Credit) Rule Type",
       "Affected GL Entry (Debit) Rule Type":"Affected GL Entry (Debit) Rule Type",
       "Accounting Rule Name *": "Accounting Rule Name *",
@@ -79,6 +92,7 @@
       "Account to Debit":"Account to Debit",
       "Account to Credit":"Account to Credit",
       "Reference Number":"Reference Number",
+      "Login Name":"Login Name",
       "Payment Type": "Payment Type",
       "Cheque Number":  "Cheque Number",
       "Receipt Number": "Receipt Number",
