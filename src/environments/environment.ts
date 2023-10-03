@@ -17,7 +17,7 @@ export const environment = {
   baseApiUrls: window['env']['fineractApiUrls'] ||
     'https://dev.mifos.io,https://demo.mifos.io,https://qa.mifos.io,https://staging.mifos.io,https://mobile.mifos.io,https://demo.fineract.dev,https://localhost:8443',
   // For connecting to server running elsewhere set the base API URL
-  baseApiUrl: window['env']['baseApiUrl'] || 'http://43.204.30.88:8080',
+  baseApiUrl: window['env']['baseApiUrl'] || 'http://52.66.204.179:8080',
   allowServerSwitch: env.allow_switching_backend_instance,
   apiProvider: window['env']['apiProvider'] || '/fineract-provider/api',
   apiVersion: window['env']['apiVersion'] || '/v1',
