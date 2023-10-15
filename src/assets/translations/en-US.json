@@ -74,6 +74,9 @@
 
     },
     "inputs": {
+      "Notification":"Notification",
+      "Created At":"Created At",
+      "Repeat Password":"Repeat Password",
       "Opened On":"Opened On",
       "Parent officeData":"Parent officeData",
       "Number of Staff":"Number of Staff",
