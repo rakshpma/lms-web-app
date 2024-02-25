@@ -15,9 +15,9 @@ export const environment = {
   fineractPlatformTenantIds: window['env']['fineractPlatformTenantIds'] || 'default',
   // For connecting to others servers running elsewhere update the base API URL
   baseApiUrls: window['env']['fineractApiUrls'] ||
-    'http://52.66.204.179:8080',
+    'https://lmsapi.thegrowfi.com',
   // For connecting to server running elsewhere set the base API URL
-  baseApiUrl: window['env']['baseApiUrl'] || 'localhost:8080',
+  baseApiUrl: window['env']['baseApiUrl'] || 'https://lmsapi.thegrowfi.com',
   allowServerSwitch: env.allow_switching_backend_instance,
   apiProvider: window['env']['apiProvider'] || '/fineract-provider/api',
   apiVersion: window['env']['apiVersion'] || '/v1',
@@ -27,7 +27,7 @@ export const environment = {
     serverUrl: ''
   },
   defaultLanguage: window['env']['defaultLanguage'] || 'en-US',
-  supportedLanguages: window['env']['supportedLanguages'] || 'en-US',
+  supportedLanguages: window['env']['supportedLanguages'] || 'en-US,es-MX,fr-FR',
   preloadClients: window['env']['preloadClients'] || true,
 
   defaultCharDelimiter: window['env']['defaultCharDelimiter'] || ',',

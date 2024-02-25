@@ -109,7 +109,7 @@ export class ToolbarComponent implements OnInit, AfterViewInit, AfterContentChec
    * Opens Mifos JIRA Wiki page.
    */
   help() {
-    window.open('https://www.soptle.com', '_blank');
+    window.open('https://www.thegrowfi.com', '_blank');
   }
   /**
    * Popover function
