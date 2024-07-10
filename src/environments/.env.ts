@@ -6,5 +6,4 @@ export default {
     'hash': '71b9b7d7'
   },
   'allow_switching_backend_instance': true
-};
 /* tslint:enable */
