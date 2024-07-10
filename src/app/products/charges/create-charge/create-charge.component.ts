@@ -47,11 +47,11 @@ export class CreateChargeComponent implements OnInit {
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: UntypedFormBuilder,
-              private productsService: ProductsService,
-              private route: ActivatedRoute,
-              private router: Router,
-              private dateUtils: Dates,
-              private settingsService: SettingsService) {
+    private productsService: ProductsService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private dateUtils: Dates,
+    private settingsService: SettingsService) {
     this.route.data.subscribe((data: { chargesTemplate: any }) => {
       this.chargesTemplateData = data.chargesTemplate;
       if (data.chargesTemplate.incomeOrLiabilityAccountOptions.liabilityAccountOptions) {
@@ -136,6 +136,21 @@ export class CreateChargeComponent implements OnInit {
       }
       return true;
     });
+  }
+
+  showMinMaxCap(): boolean {
+    const chargeAppliesTo = this.chargeForm.controls.chargeAppliesTo.value;
+    const chargeCalculationType = this.chargeForm.controls.chargeCalculationType.value;
+    const chargeTimeType = this.chargeForm.controls.chargeTimeType.value;
+
+    if (chargeAppliesTo === 1) {
+      return (chargeCalculationType === 2 || chargeCalculationType === 3 || chargeCalculationType === 4 || chargeCalculationType === 5);
+    } else if (chargeAppliesTo === 2) {
+      return (chargeTimeType === 16 || chargeTimeType === 5) && (chargeCalculationType === 2);
+    } else if (chargeAppliesTo === 4) {
+      return ((chargeTimeType === 14 || chargeTimeType === 15) && chargeCalculationType === 2);
+    }
+    return false;
   }
 
   /**

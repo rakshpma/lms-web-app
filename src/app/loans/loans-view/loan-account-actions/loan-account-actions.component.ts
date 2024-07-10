@@ -44,7 +44,8 @@ export class LoanAccountActionsComponent {
             'Charge-Off': boolean,
             'Undo Charge-Off': boolean,
             'Sell Loan': boolean,
-            'Buy Back Loan': boolean
+            'Buy Back Loan': boolean,
+            'Re-Age': boolean
          } = {
               'Close': false,
               'Undo Approval': false,
@@ -77,7 +78,8 @@ export class LoanAccountActionsComponent {
               'Charge-Off': false,
               'Undo Charge-Off': false,
               'Sell Loan': false,
-              'Buy Back Loan': false
+              'Buy Back Loan': false,
+              'Re-Age': false
           };
 
   actionButtonData: any;
@@ -87,8 +89,9 @@ export class LoanAccountActionsComponent {
    * @param route Activated Route.
    */
   constructor(private route: ActivatedRoute) {
-      this.route.data.subscribe(( data: { actionButtonData: any }) => {
+      this.route.data.subscribe(( data: { actionButtonData: any, loanDetailsData: any }) => {
         this.actionButtonData = data.actionButtonData;
+        this.actionButtonData.currency = data.loanDetailsData.currency;
       });
 
     this.route.params.subscribe(params => {

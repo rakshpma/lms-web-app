@@ -34,6 +34,10 @@ export class FixedDepositsButtonsConfiguration {
           {
             name: 'Calculate Interest',
             icon: 'fa fa-table'
+          },
+          {
+            name: 'Undo Activation',
+            icon: 'fa fa-undo'
           }
         ];
         break;
@@ -97,7 +101,7 @@ export class FixedDepositsButtonsConfiguration {
             name: 'Reject'
           },
           {
-            name: 'Withdraw By Client'
+            name: 'Withdrawn by Client'
           },
           {
             name: 'Add Charge'

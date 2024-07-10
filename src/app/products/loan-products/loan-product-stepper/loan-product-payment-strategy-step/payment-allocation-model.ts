@@ -4,6 +4,7 @@ export interface PaymentAllocationTransactionType {
   id: number;
   value: string;
   code: string;
+  credit?: boolean;
 }
 
 export interface PaymentAllocationType {
@@ -30,6 +31,17 @@ export interface PaymentAllocation {
   futureInstallmentAllocationRule: string;
 }
 
+export interface CreditAllocationOrder {
+  id?: number;
+  creditAllocationRule: string;
+  order: number;
+}
+
+export interface CreditAllocation {
+  transactionType: string;
+  creditAllocationOrder: CreditAllocationOrder[];
+}
+
 export class PaymentAllocationTransactionTypes {
   public static DEFAULT_TRANSACTION: PaymentAllocationTransactionType = { id: 1, value: 'Default', code: 'DEFAULT' };
 }
@@ -41,10 +53,38 @@ export class AdvancedPaymentAllocation {
   futureInstallmentAllocationRules: FutureInstallmentAllocationRule[];
 }
 
+export class AdvancedCreditAllocation {
+  transaction: PaymentAllocationTransactionType;
+  creditAllocationOrder?: CreditAllocationOrder[];
+}
+
+export class AdvancePaymentAllocationData {
+  transactionTypes: PaymentAllocationTransactionType[];
+  allocationTypes: PaymentAllocationType[];
+  futureInstallmentAllocationRules: FutureInstallmentAllocationRule[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AdvancedPaymentStrategy {
+
+  public buildAdvancedCreditAllocationList(loanProduct: any): AdvancedCreditAllocation[] {
+    const advancedCreditAllocation: AdvancedCreditAllocation[] = [];
+    const advancedCreditAllocationTransactionTypes: PaymentAllocationTransactionType[] =
+      loanProduct.creditAllocationTransactionTypes;
+    const advancedPaymentAllocationTypes: CreditAllocationOrder[] = loanProduct.creditAllocationAllocationTypes;
+    if (loanProduct.creditAllocation) {
+      loanProduct.creditAllocation.forEach((item: CreditAllocation) => {
+        advancedCreditAllocation.push({
+          transaction: this.getItemByCode(item.transactionType, advancedCreditAllocationTransactionTypes),
+          creditAllocationOrder: this.buildCurrentCreditAllocationOrder(item.creditAllocationOrder,
+            advancedPaymentAllocationTypes),
+        });
+      });
+    }
+    return advancedCreditAllocation;
+  }
 
   public buildAdvancedPaymentAllocationList(loanProduct: any): AdvancedPaymentAllocation[] {
     const advancedPaymentAllocation: AdvancedPaymentAllocation[] = [];
@@ -88,6 +128,14 @@ export class AdvancedPaymentStrategy {
     };
   }
 
+  public buildAdvancedCreditAllocation(transaction: PaymentAllocationTransactionType,
+    currentItems: CreditAllocationOrder[]): AdvancedCreditAllocation {
+    return {
+      transaction: transaction,
+      creditAllocationOrder: this.buildCreditAllocationTransactionOrder(true, currentItems, currentItems)
+    };
+  }
+
   public buildPaymentAllocationTransactionOrder(forDefault: boolean, currentItems: PaymentAllocationOrder[], defaultItems: PaymentAllocationOrder[]): PaymentAllocationOrder[] {
     const paymentAllocationOrder: PaymentAllocationOrder[] = [];
     if (forDefault) {
@@ -104,20 +152,50 @@ export class AdvancedPaymentStrategy {
     return paymentAllocationOrder;
   }
 
+  public buildCreditAllocationTransactionOrder(forDefault: boolean, currentItems: CreditAllocationOrder[], defaultItems: CreditAllocationOrder[]): CreditAllocationOrder[] {
+    const paymentAllocationOrder: CreditAllocationOrder[] = [];
+    if (forDefault) {
+      return defaultItems;
+    } else {
+      currentItems.forEach((currentItem: CreditAllocationOrder) => {
+        defaultItems.forEach((item: CreditAllocationOrder) => {
+          if (currentItem.id === item.id) {
+            paymentAllocationOrder.push(item);
+          }
+        });
+      });
+    }
+    return paymentAllocationOrder;
+  }
+
   public buildPaymentAllocations(advancedPaymentAllocations: AdvancedPaymentAllocation[]): PaymentAllocation[] {
     const paymentAllocations: PaymentAllocation[] = [];
     advancedPaymentAllocations.forEach((paymentAllocation: AdvancedPaymentAllocation) => {
-      paymentAllocations.push({
-        transactionType: paymentAllocation.transaction.code,
-        paymentAllocationOrder: this.buildPaymentAllocationOrder(paymentAllocation.paymentAllocationOrder),
-        futureInstallmentAllocationRule: paymentAllocation.futureInstallmentAllocationRule.code
-      });
+      if (paymentAllocation.paymentAllocationOrder) {
+        paymentAllocations.push({
+          transactionType: paymentAllocation.transaction.code,
+          paymentAllocationOrder: this.buildPaymentAllocationOrder(paymentAllocation.paymentAllocationOrder),
+          futureInstallmentAllocationRule: paymentAllocation.futureInstallmentAllocationRule.code
+        });
+      }
     });
 
     return paymentAllocations;
   }
 
-  public buildPaymentAllocationOrder(paymentAllocationOrder: PaymentAllocationOrder[]): PaymentAllocationOrder[] {
+  public buildCreditAllocations(advancedCreditAllocations: AdvancedCreditAllocation[]): CreditAllocation[] {
+    const creditAllocations: CreditAllocation[] = [];
+    advancedCreditAllocations.forEach((creditAllocation: AdvancedCreditAllocation) => {
+      creditAllocations.push({
+        transactionType: creditAllocation.transaction.code,
+        creditAllocationOrder: this.buildCreditAllocationOrder(creditAllocation.creditAllocationOrder)
+      });
+    });
+
+    return creditAllocations;
+  }
+
+  private buildPaymentAllocationOrder(paymentAllocationOrder: PaymentAllocationOrder[]): PaymentAllocationOrder[] {
     const paymentAllocations: any[] = [];
     paymentAllocationOrder.forEach((item: any, index: number) => {
       paymentAllocations.push({
@@ -129,7 +207,19 @@ export class AdvancedPaymentStrategy {
     return paymentAllocations;
   }
 
-  public buildCurrentPaymentAllocationOrder(currentItems: any[], defaultItems: PaymentAllocationOrder[]):
+  private buildCreditAllocationOrder(creditAllocationOrder: CreditAllocationOrder[]): CreditAllocationOrder[] {
+    const creditAllocations: CreditAllocationOrder[] = [];
+    creditAllocationOrder.forEach((item: any, index: number) => {
+      creditAllocations.push({
+        order: (index + 1),
+        creditAllocationRule: item.code
+      });
+    });
+
+    return creditAllocations;
+  }
+
+  private buildCurrentPaymentAllocationOrder(currentItems: any[], defaultItems: PaymentAllocationOrder[]):
     PaymentAllocationOrder[] {
       const paymentAllocationOrder: PaymentAllocationOrder[] = [];
       currentItems.forEach((item: any) => {
@@ -138,7 +228,16 @@ export class AdvancedPaymentStrategy {
       return paymentAllocationOrder;
   }
 
-  public getItemByCode(code: string,
+  private buildCurrentCreditAllocationOrder(currentItems: any[], defaultItems: CreditAllocationOrder[]):
+    CreditAllocationOrder[] {
+      const creditAllocationOrder: CreditAllocationOrder[] = [];
+      currentItems.forEach((item: any) => {
+        creditAllocationOrder.push(this.getItemByCode(item.creditAllocationRule, defaultItems));
+      });
+      return creditAllocationOrder;
+  }
+
+  private getItemByCode(code: string,
       options: any[]): any {
     let transaction: any;
     options.forEach((option: any) => {

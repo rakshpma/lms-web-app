@@ -7,6 +7,8 @@ import { DeleteDialogComponent } from 'app/shared/delete-dialog/delete-dialog.co
 
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
+import { Accounting } from 'app/core/utils/accounting';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'mifosx-recurring-deposit-product-accounting-step',
@@ -33,7 +35,9 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
   feesPenaltyIncomeDisplayedColumns: string[] = ['chargeId', 'incomeAccountId', 'actions'];
 
   constructor(private formBuilder: UntypedFormBuilder,
-    public dialog: MatDialog) {
+              private dialog: MatDialog,
+              private accounting: Accounting,
+            private translateService: TranslateService) {
     this.createrecurringDepositProductAccountingForm();
     this.setConditionalControls();
   }
@@ -52,10 +56,11 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
   }
 
   assignAccountingStepData() {
-    if (this.recurringDepositProductsTemplate.accountingRule.id === 2) {
-      this.recurringDepositProductAccountingForm.patchValue({
-        'accountingRule': this.recurringDepositProductsTemplate.accountingRule.id
-      });
+    this.recurringDepositProductAccountingForm.patchValue({
+      'accountingRule': this.recurringDepositProductsTemplate.accountingRule.id
+    });
+    if (this.isCashOrAccrualAccounting()) {
+
       this.recurringDepositProductAccountingForm.patchValue({
         'savingsReferenceAccountId': this.recurringDepositProductsTemplate.accountingMappings.savingsReferenceAccount.id,
         'savingsControlAccountId': this.recurringDepositProductsTemplate.accountingMappings.savingsControlAccount.id,
@@ -64,6 +69,15 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
         'incomeFromPenaltyAccountId': this.recurringDepositProductsTemplate.accountingMappings.incomeFromPenaltyAccount.id,
         'interestOnSavingsAccountId': this.recurringDepositProductsTemplate.accountingMappings.interestOnSavingsAccount.id
       });
+
+      if (this.isAccrualAccounting()) {
+        this.recurringDepositProductAccountingForm.patchValue({
+          'feesReceivableAccountId': this.recurringDepositProductsTemplate.accountingMappings.feeReceivableAccount.id,
+          'penaltiesReceivableAccountId': this.recurringDepositProductsTemplate.accountingMappings.penaltyReceivableAccount.id,
+          'interestPayableAccountId': this.recurringDepositProductsTemplate.accountingMappings.interestPayableAccount.id
+        });
+      }
+
       if (this.recurringDepositProductsTemplate.paymentChannelToFundSourceMappings || this.recurringDepositProductsTemplate.feeToIncomeAccountMappings || this.recurringDepositProductsTemplate.penaltyToIncomeAccountMappings) {
         this.recurringDepositProductAccountingForm.patchValue({
           'advancedAccountingRules': true
@@ -108,10 +122,14 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
     });
   }
 
+  existCharges(): boolean {
+    return (this.chargeData.length > 0);
+  }
+
   setConditionalControls() {
     this.recurringDepositProductAccountingForm.get('accountingRule').valueChanges
       .subscribe((accountingRule: any) => {
-        if (accountingRule === 2) {
+        if (accountingRule === 2 || accountingRule === 3) {
           this.recurringDepositProductAccountingForm.addControl('savingsReferenceAccountId', new UntypedFormControl('', Validators.required));
           this.recurringDepositProductAccountingForm.addControl('savingsControlAccountId', new UntypedFormControl('', Validators.required));
           this.recurringDepositProductAccountingForm.addControl('transfersInSuspenseAccountId', new UntypedFormControl('', Validators.required));
@@ -119,6 +137,12 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
           this.recurringDepositProductAccountingForm.addControl('incomeFromFeeAccountId', new UntypedFormControl('', Validators.required));
           this.recurringDepositProductAccountingForm.addControl('incomeFromPenaltyAccountId', new UntypedFormControl('', Validators.required));
           this.recurringDepositProductAccountingForm.addControl('advancedAccountingRules', new UntypedFormControl(false));
+
+          if (accountingRule === 3) {
+            this.recurringDepositProductAccountingForm.addControl('feesReceivableAccountId', new UntypedFormControl('', Validators.required));
+            this.recurringDepositProductAccountingForm.addControl('penaltiesReceivableAccountId', new UntypedFormControl('', Validators.required));
+            this.recurringDepositProductAccountingForm.addControl('interestPayableAccountId', new UntypedFormControl('', Validators.required));
+          }
 
           this.recurringDepositProductAccountingForm.get('advancedAccountingRules').valueChanges
             .subscribe((advancedAccountingRules: boolean) => {
@@ -144,6 +168,9 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
           this.recurringDepositProductAccountingForm.removeControl('incomeFromInterestId');
           this.recurringDepositProductAccountingForm.removeControl('advancedAccountingRules');
           this.recurringDepositProductAccountingForm.removeControl('escheatLiabilityId');
+          this.recurringDepositProductAccountingForm.removeControl('feesReceivableAccountId');
+          this.recurringDepositProductAccountingForm.removeControl('penaltiesReceivableAccountId');
+          this.recurringDepositProductAccountingForm.removeControl('interestPayableAccountId');
         }
       });
   }
@@ -193,9 +220,12 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
 
   getData(formType: string, values?: any) {
     switch (formType) {
-      case 'PaymentFundSource': return { title: 'Configure Fund Sources for Payment Channels', formfields: this.getPaymentFundSourceFormfields(values) };
-      case 'FeesIncome': return { title: 'Map Fees to Income Accounts', formfields: this.getFeesIncomeFormfields(values) };
-      case 'PenaltyIncome': return { title: 'Map Penalties to Specific Income Accounts', formfields: this.getPenaltyIncomeFormfields(values) };
+      case 'PaymentFundSource': return { title: this.translateService.instant('labels.heading.Configure Fund Sources for Payment Channels'),
+        formfields: this.getPaymentFundSourceFormfields(values) };
+      case 'FeesIncome': return { title: this.translateService.instant('labels.heading.Map Fees to Specific Income Accounts'),
+        formfields: this.getFeesIncomeFormfields(values) };
+      case 'PenaltyIncome': return { title: this.translateService.instant('labels.heading.Map Penalties to Specific Income Accounts'),
+        formfields: this.getPenaltyIncomeFormfields(values) };
     }
   }
 
@@ -203,7 +233,7 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
     const formfields: FormfieldBase[] = [
       new SelectBase({
         controlName: 'paymentTypeId',
-        label: 'Payment Type',
+        label: this.translateService.instant('labels.inputs.Payment Type'),
         value: values ? values.paymentTypeId : this.paymentTypeData[0].id,
         options: { label: 'name', value: 'id', data: this.paymentTypeData },
         required: true,
@@ -211,7 +241,7 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
       }),
       new SelectBase({
         controlName: 'fundSourceAccountId',
-        label: 'Fund Source',
+        label: this.translateService.instant('labels.inputs.Fund Source'),
         value: values ? values.fundSourceAccountId : this.assetAccountData[0].id,
         options: { label: 'name', value: 'id', data: this.assetAccountData },
         required: true,
@@ -225,7 +255,7 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
     const formfields: FormfieldBase[] = [
       new SelectBase({
         controlName: 'chargeId',
-        label: 'Fees',
+        label: this.translateService.instant('labels.inputs.Fees'),
         value: values ? values.chargeId : this.chargeData[0].id,
         options: { label: 'name', value: 'id', data: this.chargeData },
         required: true,
@@ -233,7 +263,7 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
       }),
       new SelectBase({
         controlName: 'incomeAccountId',
-        label: 'Income Account',
+        label: this.translateService.instant('labels.inputs.Income Account'),
         value: values ? values.incomeAccountId : this.incomeAccountData[0].id,
         options: { label: 'name', value: 'id', data: this.incomeAccountData },
         required: true,
@@ -267,6 +297,14 @@ export class RecurringDepositProductAccountingStepComponent implements OnInit {
 
   get recurringDepositProductAccounting() {
     return this.recurringDepositProductAccountingForm.value;
+  }
+
+  isCashOrAccrualAccounting(): boolean {
+    return this.accounting.isCashOrAccrualAccountingRuleId(this.recurringDepositProductAccountingForm.value.accountingRule);
+  }
+
+  isAccrualAccounting(): boolean {
+    return this.accounting.isAccrualAccountingRuleId(this.recurringDepositProductAccountingForm.value.accountingRule);
   }
 
 }

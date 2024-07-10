@@ -1,8 +1,9 @@
 /** Angular Imports */
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, HostBinding } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 
 /** rxjs Imports */
 import { merge } from 'rxjs';
@@ -20,15 +21,45 @@ import { ThemeStorageService } from './shared/theme-picker/theme-storage.service
 import { AlertService } from './core/alert/alert.service';
 import { AuthenticationService } from './core/authentication/authentication.service';
 import { SettingsService } from './settings/settings.service';
+import { IdleTimeoutService } from './home/timeout-dialog/idle-timeout.service';
+import { SessionTimeoutDialogComponent } from './home/timeout-dialog/session-timeout-dialog.component';
 
 /** Custom Items */
 import { Alert } from './core/alert/alert.model';
 import { KeyboardShortcutsConfiguration } from './keyboards-shortcut-config';
 import { Dates } from './core/utils/dates';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { I18nService } from './core/i18n/i18n.service';
+import { ThemingService } from './shared/theme-toggle/theming.service';
 
 /** Initialize Logger */
 const log = new Logger('MifosX');
+
+import { registerLocaleData } from '@angular/common';
+import localeCS from '@angular/common/locales/cs';
+import localeEN from '@angular/common/locales/en';
+import localeES from '@angular/common/locales/es';
+import localeDE from '@angular/common/locales/de';
+import localeFR from '@angular/common/locales/fr';
+import localeIT from '@angular/common/locales/it';
+import localeKO from '@angular/common/locales/ko';
+import localeLT from '@angular/common/locales/lt';
+import localeLV from '@angular/common/locales/lv';
+import localeNE from '@angular/common/locales/ne';
+import localePT from '@angular/common/locales/pt';
+import localeSW from '@angular/common/locales/sw';
+registerLocaleData(localeCS);
+registerLocaleData(localeEN);
+registerLocaleData(localeES);
+registerLocaleData(localeDE);
+registerLocaleData(localeFR);
+registerLocaleData(localeIT);
+registerLocaleData(localeKO);
+registerLocaleData(localeLT);
+registerLocaleData(localeLV);
+registerLocaleData(localeNE);
+registerLocaleData(localePT);
+registerLocaleData(localeSW);
 
 /**
  * Main web app component.
@@ -54,6 +85,8 @@ export class WebAppComponent implements OnInit {
 
   buttonConfig: KeyboardShortcutsConfiguration;
 
+  i18nService: I18nService;
+
   /**
    * @param {Router} router Router for navigation.
    * @param {ActivatedRoute} activatedRoute Activated Route.
@@ -65,6 +98,8 @@ export class WebAppComponent implements OnInit {
    * @param {SettingsService} settingsService Settings Service.
    * @param {AuthenticationService} authenticationService Authentication service.
    * @param {Dates} dateUtils Dates service.
+   * @param {IdleTimeoutService} idle Idle timeout service.
+   * @param {MatDialog} dialog Dialog component.
    */
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -75,7 +110,12 @@ export class WebAppComponent implements OnInit {
               private alertService: AlertService,
               private settingsService: SettingsService,
               private authenticationService: AuthenticationService,
-              private dateUtils: Dates) { }
+              private themingService: ThemingService,
+              private dateUtils: Dates,
+              private idle: IdleTimeoutService,
+              private dialog: MatDialog) { }
+
+  @HostBinding('class') public cssClass: string;
 
   /**
    * Initial Setup:
@@ -86,11 +126,15 @@ export class WebAppComponent implements OnInit {
    *
    * 3) Page Title
    *
-   * 4) Theme
-   *
-   * 5) Alerts
+   * 4) Alerts
    */
   ngOnInit() {
+    this.themingService.theme.subscribe((value: string) => {
+      this.cssClass = value;
+    });
+    this.themingService.setInitialDarkMode();
+    this.themingService.setDarkMode((this.settingsService.themeDarkEnabled === 'true'));
+
     // Setup logger
     if (environment.production) {
       Logger.enableProductionMode();
@@ -99,7 +143,13 @@ export class WebAppComponent implements OnInit {
 
     // Setup translations
     this.translateService.addLangs(environment.supportedLanguages.split(','));
-    this.translateService.use(environment.defaultLanguage);
+    if (this.settingsService.language) {
+      this.translateService.use(this.settingsService.languageCode);
+    } else {
+      this.translateService.use(environment.defaultLanguage);
+    }
+
+    this.i18nService = new I18nService(this.translateService);
 
     // Change page title on navigation or language change, based on route data
     const onNavigationEnd = this.router.events.pipe(filter(event => event instanceof NavigationEnd));
@@ -120,6 +170,9 @@ export class WebAppComponent implements OnInit {
         if (title) {
           this.titleService.setTitle(`${this.translateService.instant(title)} |  Loan Management System`);
         }
+        this.i18nService.translate(title).subscribe((titleTranslated: any) => {
+          this.titleService.setTitle(titleTranslated);
+        });
       });
 
     // Stores top 100 user activites as local storage object.
@@ -134,12 +187,6 @@ export class WebAppComponent implements OnInit {
       activities.push(this.router.url);
       localStorage.setItem('mifosXLocation', JSON.stringify(activities));
     });
-
-    // Setup theme
-    const theme = this.themeStorageService.getTheme();
-    if (theme) {
-      this.themeStorageService.installTheme(theme);
-    }
 
     // Setup alerts
     this.alertService.alertEvent.subscribe((alertEvent: Alert) => {
@@ -163,8 +210,21 @@ export class WebAppComponent implements OnInit {
     // Set the server list from the env var FINERACT_API_URLS
     this.settingsService.setServers(environment.baseApiUrls.split(','));
     // Set the Tenant Identifier(s) list from the env var
-    this.settingsService.setTenantIdentifier(environment.fineractPlatformTenantId || 'default');
+    if (!localStorage.getItem('mifosXTenantIdentifier')) {
+      this.settingsService.setTenantIdentifier(environment.fineractPlatformTenantId || 'default');
+    }
     this.settingsService.setTenantIdentifiers(environment.fineractPlatformTenantIds.split(','));
+
+    // Subscribe to session timeout If IdleTimeout is higher than 0 (zero)
+    if (environment.session.timeout.idleTimeout > 0) {
+      this.idle.$onSessionTimeout.subscribe(() => {
+        if (this.authenticationService.getUserLoggedIn()) {
+          this.alertService.alert({type: 'Session timeout', message: this.translateService.instant('labels.text.Session timed out')});
+          this.dialog.open(SessionTimeoutDialogComponent);
+          this.logout();
+        }
+      });
+    }
   }
 
   logout() {

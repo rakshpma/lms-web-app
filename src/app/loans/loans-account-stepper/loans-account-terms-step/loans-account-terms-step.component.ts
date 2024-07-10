@@ -1,15 +1,18 @@
 /** Angular Imports */
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, FormArray } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators, FormArray, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { LoansAccountAddCollateralDialogComponent } from 'app/loans/custom-dialog/loans-account-add-collateral-dialog/loans-account-add-collateral-dialog.component';
+import { LoanProducts } from 'app/products/loan-products/loan-products';
+import { LoanProduct } from 'app/products/loan-products/models/loan-product.model';
 import { SettingsService } from 'app/settings/settings.service';
 import { DeleteDialogComponent } from 'app/shared/delete-dialog/delete-dialog.component';
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
 import { DatepickerBase } from 'app/shared/form-dialog/formfield/model/datepicker-base';
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
+import { CodeName, OptionData } from 'app/shared/models/option-data.model';
 
 /**
  * Create Loans Account Terms Step
@@ -61,9 +64,9 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
   /** Multi Disbursement Data */
   disbursementDataSource: {}[] = [];
   currencyDisplaySymbol = '$';
-  /** Loan Transaction strategies */
+  /** Loan repayment strategies */
   transactionProcessingStrategyOptions: any = [];
-
+  repaymentStrategyDisabled = false;
   /** Check if value of collateral added  is more than principal amount */
   isCollateralSufficient = false;
   /** Total value of all collateral added to a loan */
@@ -82,6 +85,11 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
   pristine = true;
 
   loanId: any = null;
+
+  loanScheduleType: OptionData | null = null;
+  loanProduct: LoanProduct | null = null;
+
+  interestRateFrequencyTypeData: any[] = [];
 
   /**
    * Create Loans Account Terms Form
@@ -106,6 +114,14 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
         this.loansAccountTermsData = this.loansAccountTemplate;
       }
 
+      if (this.loansAccountTermsData.product) {
+        this.loanProduct = this.loansAccountTermsData.product;
+      }
+
+      this.interestRateFrequencyTypeData = this.loansAccountTermsData.interestRateFrequencyTypeOptions;
+      console.log(this.loansAccountTermsData);
+      console.log(this.loanProduct);
+
       this.loansAccountTermsForm.patchValue({
         'principalAmount': this.loansAccountTermsData.principal,
         'loanTermFrequency': this.loansAccountTermsData.termFrequency,
@@ -113,7 +129,6 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
         'numberOfRepayments': this.loansAccountTermsData.numberOfRepayments,
         'repaymentEvery': this.loansAccountTermsData.repaymentEvery,
         'repaymentFrequencyType': this.loansAccountTermsData.repaymentFrequencyType.id,
-        'interestRatePerPeriod': this.loansAccountTermsData.interestRatePerPeriod,
         'amortizationType': this.loansAccountTermsData.amortizationType.id,
         'isEqualAmortization': this.loansAccountTermsData.isEqualAmortization,
         'interestType': this.loansAccountTermsData.interestType.id,
@@ -129,8 +144,16 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
         'maxOutstandingLoanBalance': this.loansAccountTermsData.maxOutstandingLoanBalance,
         'transactionProcessingStrategyCode': this.loansAccountTermsData.transactionProcessingStrategyCode,
         'interestRateDifferential': this.loansAccountTermsData.interestRateDifferential,
-        'multiDisburseLoan': this.loansAccountTermsData.multiDisburseLoan
+        'multiDisburseLoan': this.loansAccountTermsData.multiDisburseLoan,
+        'interestRateFrequencyType': this.loansAccountTermsData.interestRateFrequencyType.id,
+        'balloonRepaymentAmount': this.loansAccountTermsData.balloonRepaymentAmount,
       });
+
+      this.setAdvancedPaymentStrategyControls();
+
+      if (this.loansAccountTermsData.isLoanProductLinkedToFloatingRate) {
+        this.loansAccountTermsForm.removeControl('interestRatePerPeriod');
+      }
 
       this.multiDisburseLoan = this.loansAccountTermsData.multiDisburseLoan;
       if (this.loansAccountTermsData.disbursementDetails) {
@@ -140,7 +163,9 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
           this.totalMultiDisbursed += item.principal;
         });
       }
-
+      if (this.isDelinquencyEnabled()) {
+        this.loansAccountTermsForm.addControl('enableInstallmentLevelDelinquency', new UntypedFormControl(this.loansAccountTermsData.enableInstallmentLevelDelinquency || this.loanProduct.enableInstallmentLevelDelinquency));
+      }
       this.collateralDataSource = this.loansAccountTermsData.collateral || [];
 
       const allowAttributeOverrides = this.loansAccountTermsData.product.allowAttributeOverrides;
@@ -197,7 +222,6 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
         'numberOfRepayments': this.loansAccountTermsData.numberOfRepayments,
         'repaymentEvery': this.loansAccountTermsData.repaymentEvery,
         'repaymentFrequencyType': this.loansAccountTermsData.repaymentFrequencyType.id,
-        'interestRatePerPeriod': this.loansAccountTermsData.interestRatePerPeriod,
         'amortizationType': this.loansAccountTermsData.amortizationType.id,
         'isEqualAmortization': this.loansAccountTermsData.isEqualAmortization,
         'interestType': this.loansAccountTermsData.interestType.id,
@@ -213,10 +237,13 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
         'maxOutstandingLoanBalance': this.loansAccountTermsData.maxOutstandingLoanBalance,
         'transactionProcessingStrategyCode': this.loansAccountTermsData.transactionProcessingStrategyCode,
         'interestRateDifferential': this.loansAccountTermsData.interestRateDifferential,
-        'multiDisburseLoan': this.loansAccountTermsData.multiDisburseLoan
+        'multiDisburseLoan': this.loansAccountTermsData.multiDisburseLoan,
+        'interestRateFrequencyType': this.loansAccountTermsData.interestRateFrequencyType.id,
+        'balloonRepaymentAmount': this.loansAccountTermsData.balloonRepaymentAmount
       });
     }
     this.createloansAccountTermsForm();
+    this.setAdvancedPaymentStrategyControls();
     // this.setCustomValidators();
     this.setLoanTermListener();
   }
@@ -260,11 +287,44 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
         this.calculateLoanTerm(numberOfRepayments, repaymentEvery);
       });
 
-      this.loansAccountTermsForm.get('loanTermFrequencyType').valueChanges
+    this.loansAccountTermsForm.get('loanTermFrequencyType').valueChanges
         .subscribe(loanTermFrequencyType => {
           this.loansAccountTermsForm.patchValue({'repaymentFrequencyType': loanTermFrequencyType});
       });
 
+    this.loansAccountTermsForm.get('amortizationType').valueChanges
+      .subscribe(amortizationType => {
+        if (amortizationType === 0) {  // Equal Principal Payments
+          this.loansAccountTermsForm.addControl('fixedPrincipalPercentagePerInstallment', new UntypedFormControl(''));
+        } else {  // Equal Installments
+          this.loansAccountTermsForm.removeControl('fixedPrincipalPercentagePerInstallment');
+        }
+    });
+  }
+
+  setAdvancedPaymentStrategyControls(): void {
+      // Fixed Length validation
+      if (this.loansAccountTermsData) {
+        this.loansAccountTermsForm.removeControl('interestRatePerPeriod');
+        this.loansAccountTermsForm.removeControl('fixedLength');
+        if (this.loansAccountTermsData.product.fixedLength) {
+          this.loansAccountTermsForm.addControl('interestRatePerPeriod', new UntypedFormControl({value: 0, disabled: true}, Validators.required));
+          this.loansAccountTermsForm.addControl('fixedLength', new UntypedFormControl(this.loansAccountTermsData.product.fixedLength));
+        } else {
+          this.loansAccountTermsForm.addControl('interestRatePerPeriod', new UntypedFormControl(this.loansAccountTermsData.interestRatePerPeriod, Validators.required));
+        }
+      }
+  }
+
+  hasFixedLength(): boolean {
+    if (this.loansAccountTermsData) {
+      return this.loansAccountTermsData.product.fixedLength ? true : false;
+    }
+    return false;
+  }
+
+  isEqualPrincipalPayments(): boolean {
+    return (this.loansAccountTermsForm.value.amortizationType === 0);
   }
 
   /** Create Loans Account Terms Form */
@@ -298,7 +358,9 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
       'maxOutstandingLoanBalance': [''],
       'interestRateDifferential': [''],
       'transactionProcessingStrategyCode': ['', Validators.required],
-      'multiDisburseLoan': [false]
+      'multiDisburseLoan': [false],
+      'interestRateFrequencyType': [''],
+      'balloonRepaymentAmount': ['']
     });
   }
 
@@ -440,7 +502,31 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
     this.amortizationTypeData = this.loansAccountProductTemplate.amortizationTypeOptions;
     this.interestCalculationPeriodTypeData = this.loansAccountProductTemplate.interestCalculationPeriodTypeOptions;
     this.clientActiveLoanData = this.loansAccountProductTemplate.clientActiveLoanOptions;
-    this.transactionProcessingStrategyOptions = this.loansAccountProductTemplate.transactionProcessingStrategyOptions;
+    this.loanScheduleType = this.loansAccountProductTemplate.loanScheduleType;
+    this.transactionProcessingStrategyOptions = [];
+    if (this.loanScheduleType.code === LoanProducts.LOAN_SCHEDULE_TYPE_CUMULATIVE) {
+      // Filter Advanced Payment Allocation Strategy
+      this.transactionProcessingStrategyOptions = this.loansAccountProductTemplate.transactionProcessingStrategyOptions.filter(
+        (cn: CodeName) => !LoanProducts.isAdvancedPaymentAllocationStrategy(cn.code)
+      );
+      this.repaymentStrategyDisabled = false;
+    } else {
+      // Only Advanced Payment Allocation Strategy
+      this.loansAccountProductTemplate.transactionProcessingStrategyOptions.some(
+        (cn: CodeName) => {
+        if (LoanProducts.isAdvancedPaymentAllocationStrategy(cn.code)) {
+          this.transactionProcessingStrategyOptions.push(cn);
+        }
+      });
+      this.repaymentStrategyDisabled = true;
+    }
+  }
+
+  isDelinquencyEnabled(): boolean {
+    if (!this.loanProduct || !this.loanProduct.delinquencyBucket) {
+      return false;
+    }
+    return true;
   }
 
   /**

@@ -5,6 +5,7 @@
 <mifosx-prepay-loan [dataObject]="actionButtonData" *ngIf="actions['Prepay Loan']"></mifosx-prepay-loan>
 <mifosx-make-repayment [dataObject]="actionButtonData" *ngIf="actions['Make Repayment']"></mifosx-make-repayment>
 <mifosx-make-repayment [dataObject]="actionButtonData" *ngIf="actions['Goodwill Credit']"></mifosx-make-repayment>
+<mifosx-make-repayment [dataObject]="actionButtonData" *ngIf="actions['Interest Payment Waiver']"></mifosx-make-repayment>
 <mifosx-make-repayment [dataObject]="actionButtonData" *ngIf="actions['Payout Refund']"></mifosx-make-repayment>
 <mifosx-make-repayment [dataObject]="actionButtonData" *ngIf="actions['Merchant Issued Refund']"></mifosx-make-repayment>
 <mifosx-loan-credit-balance-refund [dataObject]="actionButtonData" *ngIf="actions['Credit Balance Refund']"></mifosx-loan-credit-balance-refund>
@@ -28,3 +29,5 @@
 <mifosx-charge-off [dataObject]="actionButtonData" *ngIf="actions['Charge-Off']"></mifosx-charge-off>
 <mifosx-undo-command [actionName]="actionName" *ngIf="actions['Undo Charge-Off']"></mifosx-undo-command>
 <mifosx-asset-transfer-loan *ngIf="actions['Sell Loan'] || actions['Buy Back Loan']"></mifosx-asset-transfer-loan>
+<mifosx-loan-reaging [dataObject]="actionButtonData" *ngIf="actions['Re-Age']"></mifosx-loan-reaging>
+<mifosx-loan-reamortize [dataObject]="actionButtonData" *ngIf="actions['Re-Amortize']"></mifosx-loan-reamortize>

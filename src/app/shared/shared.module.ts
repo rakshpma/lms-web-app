@@ -43,6 +43,13 @@ import { AccountNumberComponent } from './account-number/account-number.componen
 import { EntityNameComponent } from './entity-name/entity-name.component';
 import { TransactionPaymentDetailComponent } from './transaction-payment-detail/transaction-payment-detail.component';
 import { StepperButtonsComponent } from './steppers/stepper-buttons/stepper-buttons.component';
+import { GlAccountSelectorComponent } from './accounting/gl-account-selector/gl-account-selector.component';
+import { GlAccountDisplayComponent } from './accounting/gl-account-display/gl-account-display.component';
+import { ViewSavingsAccountingDetailsComponent } from './accounting/view-savings-accounting-details/view-savings-accounting-details.component';
+import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
+import { LongTextComponent } from './long-text/long-text.component';
+import { DropdownComponent } from './dropdown/dropdown.component';
+import { InputAmountComponent } from './input-amount/input-amount.component';
 
 /**
  * Shared Module
@@ -55,7 +62,7 @@ import { StepperButtonsComponent } from './steppers/stepper-buttons/stepper-butt
     IconsModule,
     MaterialModule,
     ReactiveFormsModule,
-    TranslateModule.forRoot(),
+    TranslateModule,
     PipesModule,
     DirectivesModule,
     NgxMatDatetimePickerModule,
@@ -92,7 +99,14 @@ import { StepperButtonsComponent } from './steppers/stepper-buttons/stepper-butt
     AccountNumberComponent,
     EntityNameComponent,
     TransactionPaymentDetailComponent,
-    StepperButtonsComponent
+    StepperButtonsComponent,
+    GlAccountSelectorComponent,
+    GlAccountDisplayComponent,
+    ViewSavingsAccountingDetailsComponent,
+    ThemeToggleComponent,
+    LongTextComponent,
+    DropdownComponent,
+    InputAmountComponent
   ],
   exports: [
     FileUploadComponent,
@@ -120,7 +134,14 @@ import { StepperButtonsComponent } from './steppers/stepper-buttons/stepper-butt
     SvgIconComponent,
     EntityNameComponent,
     TransactionPaymentDetailComponent,
-    StepperButtonsComponent
+    StepperButtonsComponent,
+    GlAccountSelectorComponent,
+    GlAccountDisplayComponent,
+    ViewSavingsAccountingDetailsComponent,
+    ThemeToggleComponent,
+    LongTextComponent,
+    DropdownComponent,
+    InputAmountComponent
   ]
 })
 export class SharedModule { }

@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { LoanProducts } from '../../loan-products';
 
 @Component({
   selector: 'mifosx-loan-product-preview-step',
@@ -12,21 +13,20 @@ export class LoanProductPreviewStepComponent implements OnInit, OnChanges {
   @Input() loanProduct: any;
   @Output() submit = new EventEmitter();
 
-  variationsDisplayedColumns: string[] = ['valueConditionType', 'borrowerCycleNumber', 'minValue', 'defaultValue', 'maxValue'];
-  chargesDisplayedColumns: string[] = ['name', 'chargeCalculationType', 'amount', 'chargeTimeType'];
-  paymentFundSourceDisplayedColumns: string[] = ['paymentTypeId', 'fundSourceAccountId'];
-  feesPenaltyIncomeDisplayedColumns: string[] = ['chargeId', 'incomeAccountId'];
-
   isAdvancedPaymentAllocation = false;
 
   constructor() { }
 
   ngOnInit() {
-    this.isAdvancedPaymentAllocation = (this.loanProduct.transactionProcessingStrategyCode === 'advanced-payment-allocation-strategy');
+    this.advancedPaymentAllocation();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.isAdvancedPaymentAllocation = (this.loanProduct.transactionProcessingStrategyCode === 'advanced-payment-allocation-strategy');
+    this.advancedPaymentAllocation();
+  }
+
+  advancedPaymentAllocation() {
+    this.isAdvancedPaymentAllocation = LoanProducts.isAdvancedPaymentAllocationStrategy(this.loanProduct.transactionProcessingStrategyCode);
   }
 
 }

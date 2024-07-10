@@ -1,18 +1,26 @@
+<<<<<<< HEAD
 <h1 mat-dialog-title>Welcome to Soptle - Loan Management System</h1>
 
 <mat-dialog-content>
 
 <h3 class="mw600">Soptle</h3>
+=======
+<h1 mat-dialog-title>{{"labels.heading.Welcome to Mifos" | translate}}</h1>
 
-<h3>{{"labels.heading.Successfully completed" |translate}} {{ previousStepName }}</h3>
+<mat-dialog-content>
 
-<h3>{{"labels.heading.Progress Bar" |translate}} : {{stepPercentage}}%</h3>
+<h3 class="mw600">{{"labels.heading.Configure Mifos Organization Needs" | translate}}</h3>
+>>>>>>> de45463c9949d23f27fbc7a518050deee64ba81c
+
+<h3>{{"labels.heading.Successfully completed" | translate}} {{ previousStepName }}</h3>
+
+<h3>{{"labels.heading.Progress Bar" | translate}} : {{stepPercentage}}%</h3>
 
 <mat-progress-bar mode="determinate" [value]="stepPercentage"></mat-progress-bar>
 
 </mat-dialog-content>
 
 <mat-dialog-actions>
-    <button mat-raised-button color="warn" [mat-dialog-close]="{ nextStep: false }">{{"labels.buttons.Close Config. Wizard" |translate}}</button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="{ nextStep: false }">{{"labels.buttons.Close Config. Wizard" | translate}}</button>
     <button mat-raised-button color="primary" [mat-dialog-close]="{ nextStep: true }"> {{ nextStepName }} </button>
 </mat-dialog-actions>

@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Dates } from 'app/core/utils/dates';
 import { SavingsService } from 'app/savings/savings.service';
 import { SettingsService } from 'app/settings/settings.service';
+import { Currency } from 'app/shared/models/general.model';
 import { SystemService } from 'app/system/system.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { SystemService } from 'app/system/system.service';
 })
 export class ManageSavingsAccountComponent implements OnInit {
 
+  @Input() currency: Currency;
   /** Minimum date allowed. */
   minDate = new Date(2000, 0, 1);
   /** Maximum date allowed. */
@@ -27,9 +29,14 @@ export class ManageSavingsAccountComponent implements OnInit {
 
   transactionType: {
     holdamount: boolean,
-    blockaccount: boolean
+    blockaccount: boolean,
+    blockdeposit: boolean,
+    blockwithdrawal: boolean
   } = {
-      holdamount: false, blockaccount: false
+      holdamount: false,
+      blockaccount: false,
+      blockdeposit: false,
+      blockwithdrawal: false
     };
 
   /**
@@ -58,7 +65,8 @@ export class ManageSavingsAccountComponent implements OnInit {
   ngOnInit() {
     this.maxDate = this.settingsService.businessDate;
     this.createManageSavingsAccountForm();
-    if (this.transactionType.holdamount || this.transactionType.blockaccount) {
+    if (this.transactionType.holdamount || this.transactionType.blockaccount
+      || this.transactionType.blockdeposit || this.transactionType.blockwithdrawal) {
       this.getCodeValues();
     }
   }
@@ -67,6 +75,10 @@ export class ManageSavingsAccountComponent implements OnInit {
     let codeName = 'SavingsTransactionFreezeReasons'; // Default Hold Amount
     if (this.transactionType.blockaccount) {
       codeName = 'SavingsAccountBlockReasons';
+    } else if (this.transactionType.blockdeposit) {
+      codeName = 'CreditTransactionFreezeReasons';
+    } else if (this.transactionType.blockwithdrawal) {
+      codeName = 'DebitTransactionFreezeReasons';
     }
 
     this.systemService.getCodes().subscribe((codes: any) => {
@@ -117,6 +129,7 @@ export class ManageSavingsAccountComponent implements OnInit {
         locale
       };
       command = 'holdAmount';
+      payload['transactionAmount'] = payload['transactionAmount'] * 1;
 
       this.savingsService.executeSavingsAccountTransactionsCommand(this.savingAccountId, command, payload).subscribe((response: any) => {
         this.router.navigate(['../../transactions'], { relativeTo: this.route });
@@ -126,6 +139,11 @@ export class ManageSavingsAccountComponent implements OnInit {
         ... this.manageSavingsAccountForm.value
       };
       command = 'block';
+      if (this.transactionType.blockdeposit) {
+        command = 'blockCredit';
+      } else if (this.transactionType.blockwithdrawal) {
+        command = 'blockDebit';
+      }
 
       this.savingsService.executeSavingsAccountCommand(this.savingAccountId, command, payload).subscribe((response: any) => {
         this.router.navigate(['../../transactions'], { relativeTo: this.route });

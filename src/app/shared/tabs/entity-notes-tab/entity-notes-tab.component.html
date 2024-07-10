@@ -1,15 +1,15 @@
 <div class="tab-container mat-typography">
 
-  <h3>Notes</h3>
+  <h3>{{ 'labels.heading.Notes' | translate }}</h3>
 
   <div>
     <form #formRef="ngForm" [formGroup]="noteForm" fxLayout="row" fxLayoutAlign="start baseline" fxLayoutGap="20px"
       (ngSubmit)="addNote()">
-      <mat-form-field fxFlex="calc(90%-20px)">
-        <textarea required formControlName="note" matInput placeholder="Write a note ...." cdkTextareaAutosize cdkAutosizeMinRows="2"></textarea>
+      <mat-form-field fxFlex="calc(85%-20px)">
+        <textarea required formControlName="note" matInput placeholder="{{'labels.text.Write a note' | translate}} ..." cdkTextareaAutosize cdkAutosizeMinRows="2"></textarea>
       </mat-form-field>
       <button mat-raised-button fxFlex color="primary" [disabled]="!noteForm.valid">
-        <fa-icon icon="plus" class="m-r-10"></fa-icon>Add
+        <fa-icon icon="plus" class="m-r-10"></fa-icon>{{ 'labels.buttons.Add' | translate }}
       </button>
     </form>
   </div>
@@ -19,8 +19,8 @@
       <fa-icon icon="sticky-note" matListIcon></fa-icon>
       <h3 matLine>{{ entityNote.note }} </h3>
       <p matLine>
-        <span>Created by: {{entityNote.createdByUsername}}</span><br />
-        <span>Date: {{entityNote.createdOn  | dateFormat}}</span>
+        <span><b>{{ 'labels.inputs.Created By' | translate }}:</b> {{entityNote.createdByUsername}}</span><br />
+        <span><b>{{ 'labels.inputs.Date' | translate }}:</b> {{entityNote.createdOn | dateFormat}}</span>
       </p>
       <div fxLayout="row" fxLayoutAlign="flex-start">
         <button mat-button color="primary" (click)="editNote(entityNote.id, entityNote.note, i)">

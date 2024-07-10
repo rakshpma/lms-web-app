@@ -3,10 +3,20 @@
 
     <mat-tab *ngFor="let advancedPaymentAllocation of advancedPaymentAllocations">
         <ng-template mat-tab-label>
-            {{advancedPaymentAllocation.transaction.code}}
+            {{advancedPaymentAllocation.transaction.value | translateKey:'catalogs'}}
         </ng-template>
         <mifosx-advance-payment-allocation-tab [advancedPaymentAllocation]="advancedPaymentAllocation"
-            (paymentAllocationChange)="paymentAllocationChanged($event)"
+            (allocationChanged)="allocationChanged($event)"
+            (transactionTypeRemoved)="transactionTypeRemoved($event)">
+        </mifosx-advance-payment-allocation-tab>
+    </mat-tab>
+
+    <mat-tab *ngFor="let advancedCreditAllocation of advancedCreditAllocations">
+        <ng-template mat-tab-label>
+            {{advancedCreditAllocation.transaction.value | translateKey:'catalogs'}}
+        </ng-template>
+        <mifosx-advance-payment-allocation-tab [advancedCreditAllocation]="advancedCreditAllocation"
+            (allocationChanged)="allocationChanged($event)"
             (transactionTypeRemoved)="transactionTypeRemoved($event)">
         </mifosx-advance-payment-allocation-tab>
     </mat-tab>
@@ -14,12 +24,8 @@
     <mat-tab disabled>
         <ng-template mat-tab-label>
             <button mat-icon-button (click)="addTransaction()">
-                <mat-icon>add</mat-icon>
+                <mat-icon>{{ 'labels.buttons.Add' | translate}}</mat-icon>
             </button>
         </ng-template>
     </mat-tab>
 </mat-tab-group>
-
-<div fxLayout="row wrap" fxLayout.lt-md="column" fxLayoutAlign="center" >
-  <mifosx-stepper-buttons fxFlex="100%" fxLayoutGap="2%"></mifosx-stepper-buttons>
-</div>

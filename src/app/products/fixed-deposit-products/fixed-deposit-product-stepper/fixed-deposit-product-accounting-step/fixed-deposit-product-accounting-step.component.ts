@@ -1,10 +1,12 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, UntypedFormArray, Validators, UntypedFormControl } from '@angular/forms';
+import { Component, Input, OnInit } from '@angular/core';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 
-import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
 import { DeleteDialogComponent } from 'app/shared/delete-dialog/delete-dialog.component';
+import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
 
+import { TranslateService } from '@ngx-translate/core';
+import { Accounting } from 'app/core/utils/accounting';
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
 
@@ -33,7 +35,9 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
   feesPenaltyIncomeDisplayedColumns: string[] = ['chargeId', 'incomeAccountId', 'actions'];
 
   constructor(private formBuilder: UntypedFormBuilder,
-              public dialog: MatDialog) {
+              public dialog: MatDialog,
+              private accounting: Accounting,
+              private translateService: TranslateService) {
     this.createfixedDepositProductAccountingForm();
     this.setConditionalControls();
   }
@@ -52,10 +56,10 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
   }
 
   assignAccountingStepData() {
-    if (this.fixedDepositProductsTemplate.accountingRule.id === 2) {
-      this.fixedDepositProductAccountingForm.patchValue({
-        'accountingRule': this.fixedDepositProductsTemplate.accountingRule.id
-      });
+    this.fixedDepositProductAccountingForm.patchValue({
+      'accountingRule': this.fixedDepositProductsTemplate.accountingRule.id
+    });
+    if (this.isCashOrAccrualAccounting()) {
       this.fixedDepositProductAccountingForm.patchValue({
         'savingsReferenceAccountId': this.fixedDepositProductsTemplate.accountingMappings.savingsReferenceAccount.id,
         'savingsControlAccountId': this.fixedDepositProductsTemplate.accountingMappings.savingsControlAccount.id,
@@ -64,6 +68,15 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
         'incomeFromPenaltyAccountId': this.fixedDepositProductsTemplate.accountingMappings.incomeFromPenaltyAccount.id,
         'interestOnSavingsAccountId': this.fixedDepositProductsTemplate.accountingMappings.interestOnSavingsAccount.id
       });
+
+      if (this.isAccrualAccounting()) {
+        this.fixedDepositProductAccountingForm.patchValue({
+          'feesReceivableAccountId': this.fixedDepositProductsTemplate.accountingMappings.feeReceivableAccount.id,
+          'penaltiesReceivableAccountId': this.fixedDepositProductsTemplate.accountingMappings.penaltyReceivableAccount.id,
+          'interestPayableAccountId': this.fixedDepositProductsTemplate.accountingMappings.interestPayableAccount.id
+        });
+      }
+
       if (this.fixedDepositProductsTemplate.paymentChannelToFundSourceMappings || this.fixedDepositProductsTemplate.feeToIncomeAccountMappings || this.fixedDepositProductsTemplate.penaltyToIncomeAccountMappings) {
         this.fixedDepositProductAccountingForm.patchValue({
           'advancedAccountingRules': true
@@ -108,10 +121,14 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
     });
   }
 
+  existCharges(): boolean {
+    return (this.chargeData.length > 0);
+  }
+
   setConditionalControls() {
     this.fixedDepositProductAccountingForm.get('accountingRule').valueChanges
       .subscribe((accountingRule: any) => {
-        if (accountingRule === 2) {
+        if (accountingRule === 2 || accountingRule === 3) {
           this.fixedDepositProductAccountingForm.addControl('savingsReferenceAccountId', new UntypedFormControl('', Validators.required));
           this.fixedDepositProductAccountingForm.addControl('savingsControlAccountId', new UntypedFormControl('', Validators.required));
           this.fixedDepositProductAccountingForm.addControl('transfersInSuspenseAccountId', new UntypedFormControl('', Validators.required));
@@ -119,6 +136,12 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
           this.fixedDepositProductAccountingForm.addControl('incomeFromFeeAccountId', new UntypedFormControl('', Validators.required));
           this.fixedDepositProductAccountingForm.addControl('incomeFromPenaltyAccountId', new UntypedFormControl('', Validators.required));
           this.fixedDepositProductAccountingForm.addControl('advancedAccountingRules', new UntypedFormControl(false));
+
+          if (accountingRule === 3) {
+            this.fixedDepositProductAccountingForm.addControl('feesReceivableAccountId', new UntypedFormControl('', Validators.required));
+            this.fixedDepositProductAccountingForm.addControl('penaltiesReceivableAccountId', new UntypedFormControl('', Validators.required));
+            this.fixedDepositProductAccountingForm.addControl('interestPayableAccountId', new UntypedFormControl('', Validators.required));
+          }
 
           this.fixedDepositProductAccountingForm.get('advancedAccountingRules').valueChanges
             .subscribe((advancedAccountingRules: boolean) => {
@@ -144,6 +167,9 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
           this.fixedDepositProductAccountingForm.removeControl('incomeFromInterestId');
           this.fixedDepositProductAccountingForm.removeControl('advancedAccountingRules');
           this.fixedDepositProductAccountingForm.removeControl('escheatLiabilityId');
+          this.fixedDepositProductAccountingForm.removeControl('feesReceivableAccountId');
+          this.fixedDepositProductAccountingForm.removeControl('penaltiesReceivableAccountId');
+          this.fixedDepositProductAccountingForm.removeControl('interestPayableAccountId');
         }
       });
   }
@@ -182,7 +208,7 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
 
   delete(formArray: UntypedFormArray, index: number) {
     const dialogRef = this.dialog.open(DeleteDialogComponent, {
-      data: { deleteContext: `this` }
+      data: { deleteContext: this.translateService.instant('labels.text.this') }
     });
     dialogRef.afterClosed().subscribe((response: any) => {
       if (response.delete) {
@@ -267,6 +293,14 @@ export class FixedDepositProductAccountingStepComponent implements OnInit {
 
   get fixedDepositProductAccounting() {
     return this.fixedDepositProductAccountingForm.value;
+  }
+
+  isCashOrAccrualAccounting(): boolean {
+    return this.accounting.isCashOrAccrualAccountingRuleId(this.fixedDepositProductAccountingForm.value.accountingRule);
+  }
+
+  isAccrualAccounting(): boolean {
+    return this.accounting.isAccrualAccountingRuleId(this.fixedDepositProductAccountingForm.value.accountingRule);
   }
 
 }

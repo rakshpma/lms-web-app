@@ -12,7 +12,7 @@ export const environment = {
   baseApiUrls: window['env']['fineractApiUrls'] ||
   'https://dev.mifos.io,https://demo.mifos.io,https://qa.mifos.io,https://staging.mifos.io,https://mobile.mifos.io,https://demo.fineract.dev,https://localhost:8443',
   // For connecting to server running elsewhere set the base API URL
-  baseApiUrl: window['env']['fineractApiUrl'] || 'http://43.204.30.88:8080',
+  baseApiUrl: window['env']['fineractApiUrl'] || 'https://lmsdevapi.thegrowfi.com',
   allowServerSwitch: env.allow_switching_backend_instance,
   apiProvider: window['env']['apiProvider'] || '/fineract-provider/api',
   apiVersion: window['env']['apiVersion'] || '/v1',
@@ -21,13 +21,28 @@ export const environment = {
     enabled: false,  // For connecting to Mifos X using OAuth2 Authentication change the value to true
     serverUrl: ''
   },
+  warningDialog: {
+    title: 'Warning',
+    content: 'This system is for authorized use only',
+    buttonText: 'Close'
+  },
   defaultLanguage: window['env']['defaultLanguage'] || 'en-US',
   supportedLanguages: window['env']['supportedLanguages'] || 'en-US',
   preloadClients: window['env']['preloadClients'] || true,
 
   defaultCharDelimiter: window['env']['defaultCharDelimiter'] || ',',
 
-  displayBackEndInfo: window['env']['displayBackEndInfo'] || true
+  displayBackEndInfo: window['env']['displayBackEndInfo'] || 'true',
+  displayTenantSelector: window['env']['displayTenantSelector'] || 'true',
+  // Time in seconds, default 60 seconds
+  waitTimeForNotifications: window['env']['waitTimeForNotifications'] || 60,
+  // Time in seconds, default 30 seconds
+  waitTimeForCOBCatchUp: window['env']['waitTimeForCOBCatchUp'] || 30,
+  session: {
+    timeout: {
+      idleTimeout: window['env']['sessionIdleTimeout'] || 300000, // 5 minutes
+    }
+  }
 };
 
 // Server URL
